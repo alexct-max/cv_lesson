@@ -16,6 +16,7 @@ from collections import Counter
 
 
 class ModelTrainer(object):
+    # 可以使用静态方法调用，即 ModelTraine.train()调用
     # @staticmethod 参考https://github.com/taizilongxu/interview_python#3-staticmethod%E5%92%8Cclassmethod
     @staticmethod
     def train(data_loader, model, loss_f, optimizer, scheduler, epoch_idx, device, log_interval, max_epoch):
