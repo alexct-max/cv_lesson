@@ -12,6 +12,7 @@
 import os
 from PIL import Image
 from torch.utils.data import Dataset
+from scipy.io import loadmat
 
 
 class FlowerDataset(Dataset):
@@ -47,13 +48,26 @@ class FlowerDataset(Dataset):
                 self.root_dir)) # 代码具有友好的提示功能，便于debug
         return len(self.img_info)
 
+    # 函数前有'_'表示内部函数
     def _get_img_info(self):
         """
         实现数据集的读取，将硬盘中的数据路径，标签读取进来，存在一个list中
         path, label
         :return:
         """
-        pass
+        names_imgs = os.listdir(self.root_dir)
+        names_imgs = [n for n in names_imgs if n.endswith(".jpg")]
+
+        # 读取标签，格式为mat
+        label_file = 'imagelabels.mat'
+        path_label_file = os.path.join(self.root_dir, '..', label_file)
+        label_array = loadmat(path_label_file)['labels'].squeeze()
+        self.label_array = label_array
+
+        # 匹配标签
+        idx_imgs = [int(n[6:11]) for n in names_imgs]
+        path_imgs = [os.path.join(self.root_dir, n) for n in names_imgs]
+        self.img_info = [(p, int(label_array[idx-1]-1)) for p, idx in zip(path_imgs, idx_imgs)]
 
 def main():
 
