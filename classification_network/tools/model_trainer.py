@@ -55,3 +55,40 @@ class ModelTrainer(object):
                 cate_i = labels[j].cpu().numpy() #如果想把CUDA tensor格式的数据改成numpy时，需要先将其转换成cpu float-tensor随后再转到numpy格式。 numpy不能读取CUDA tensor 需要将它转化为 CPU tensor,参考https://zhuanlan.zhihu.com/p/165219346
                 pre_i = predicted[j].cpu().numpy()
                 conf_mat[cate_i, pre_i] += 1.
+            # numpy.sum() np数组求和，参考https://blog.csdn.net/weixin_39760967/article/details/116164524，    numpy.trace() 返回沿数组对角线的总和,参考http://www.manongjc.com/detail/30-fbjavmyadywgigc.html
+            acc_avg = conf_mat.trace() / conf_mat.sum()
+
+            # 每10个iteration 打印一次训练信息
+            if i%log_interval == log_interval -1:
+                print("Training: Epoch[{:0>3}/{:0>3}] Iteration[{:0>3}/{:0>3}] Loss: {:.4f} Acc:{:.2%}".format(epoch_idx + 1, max_epoch, i + 1, len(data_loader), loss_mean, acc_avg))
+        print("epoch:{} sampler: {}".format(epoch_idx, Counter(label_list))) # Counter    统计词频，即列表中每个元素出现的数量，参考https://blog.csdn.net/Flag_ing/article/details/124026747
+        return loss_mean, acc_avg, conf_mat, path_error
+
+    @staticmethod
+    def valid(data_loader, model, loss_f, device):
+        model.eval()
+
+        class_num = data_loader.dataset.cls_num
+        conf_mat = np.zeros((class_num, class_num))
+        loss_sigma = []
+        path_error = []
+
+        for i, data in enumerate(data_loader):
+            # inputs, labels, path_imgs = data
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            loss = loss_f(outputs.cpu(), labels.cpu())
+
+            _, predicted = torch.max(outputs.data, 1)
+            for j in range(len(labels)):
+                cate_i = labels[j].cpu().numpy()
+                pre_i = predicted[j].cpu().numpy()
+                conf_mat[cate_i, pre_i] += 1.
+            # 统计loss
+            loss_sigma.append(loss.item())
+
+        acc_avg = conf_mat.trace() / conf_mat.sum()
+
+        return np.mean(loss_sigma), acc_avg, conf_mat, path_error
