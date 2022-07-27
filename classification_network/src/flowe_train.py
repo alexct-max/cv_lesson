@@ -12,6 +12,8 @@
 # here put the import lib
 import os
 from statistics import mode
+
+from sklearn.naive_bayes import GaussianNB
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.append(os.path.join(BASE_DIR, '..'))
@@ -35,10 +37,10 @@ if __name__ == '__main__':
     if not os.path.exists(log_dir):  # 如果path存在，返回True；如果path不存在，返回False。 参考https://blog.csdn.net/weixin_41093268/article/details/82735035
         os.makedirs(log_dir)
     # 训练集、测试集
-    train_dir = r'path' # 后续填充
-    valid_dir = r'path' # 后续填充
+    train_dir = r'D:\code_learning\dataset\102flowers\train' # 后续填充
+    valid_dir = r'D:\code_learning\dataset\102flowers\valid' # 后续填充
     # image-net 预训练模型地址
-    path_state_dict = r'path' # 后续填充
+    path_state_dict = r'D:\code_learning\model_path\resnet18-f37072fd.pth' # 后续填充
     # batch size
     train_bs = 64
     valid_bs = 64
@@ -88,3 +90,37 @@ if __name__ == '__main__':
         print(f'path:{path_state_dict} is not exists.')
     
     # 修改最后一层
+    num_ftes = model.fc.in_features
+    model.fc = nn.Linear(num_ftes, train_data.cls_num)
+    # to device
+    model.to(device)
+
+    # 3.损失函数、优化器
+    loss_f = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=lr_init, momentum=momentum, weight_decay=weight_decay)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, gamma=factor, milestones=milestones) # 学习率设置，参考https://zhuanlan.zhihu.com/p/380795956
+
+    # 迭代训练
+    loss_rec = {"train": [], "valid": []}
+    acc_rec = {"train": [], "valid": []}
+    best_acc, best_epoch = 0, 0
+    for epoch in range(max_epoch):
+
+        # train
+        loss_train, acc_train, mat_train, path_error_train = ModelTrainer.train(train_loader, model, loss_f, optimizer, scheduler, epoch, device, log_interval, max_epoch)
+
+        # valid
+        loss_valid, acc_valid, mat_valid, path_error_valid = ModelTrainer.valid(valid_loader, model, loss_f, device)
+
+        print("Epoch[{:0>3}/{:0>3}] Train Acc: {:.2%} Valid Acc:{:.2%} Train loss:{:.4f} Valid loss:{:.4f} LR:{}". format(epoch + 1, max_epoch, acc_train, acc_valid, loss_train, loss_valid, optimizer.param_groups[0]["lr"]))
+
+        scheduler.step() # 学习率更新
+
+        # 模型保存
+        if best_acc < acc_valid or epoch == max_epoch-1:
+            best_epoch = epoch if best_acc < acc_valid else best_epoch
+            best_acc = acc_valid if best_acc < acc_valid else best_acc
+            checkpoint = {"model_state_dict": model.state_dict(), "optimizer_state_dict": optimizer.state_dict(), "epoch": epoch, "best_acc": best_acc}
+            pkl_name = "checkpoint_{}.pkl".format(epoch) if epoch == max_epoch - 1 else "checkpoint_best.pkl"
+            path_checkpoint = os.path.join(log_dir, pkl_name)
+            torch.save(checkpoint, path_checkpoint)
