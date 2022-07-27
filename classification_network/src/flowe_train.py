@@ -11,6 +11,7 @@
 
 # here put the import lib
 import os
+from statistics import mode
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.append(os.path.join(BASE_DIR, '..'))
@@ -69,3 +70,21 @@ if __name__ == '__main__':
         transforms.ToTensor(),
         normTransform
     ])
+
+    train_data = FlowerDataset(root_dir=train_dir, transform=transforms_train)
+    valid_data = FlowerDataset(root_dir=valid_dir, transform=transforms_valid)
+
+    # 构建DataLoder
+    train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True, num_workers=workers)
+    valid_loader = DataLoader(dataset=valid_data, batch_size=valid_bs, num_workers=workers)
+
+    # 2. 模型
+    model = resnet18()
+    # load pretrain model
+    if os.path.exists(path_state_dict):
+        pretrain_state_dict = torch.load(path_state_dict, map_location="cpu")
+        model.load_state_dict(pretrain_state_dict)
+    else:
+        print(f'path:{path_state_dict} is not exists.')
+    
+    # 修改最后一层
