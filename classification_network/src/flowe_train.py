@@ -11,9 +11,6 @@
 
 # here put the import lib
 import os
-from statistics import mode
-
-from sklearn.naive_bayes import GaussianNB
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.append(os.path.join(BASE_DIR, '..'))
