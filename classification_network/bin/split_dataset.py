@@ -47,6 +47,8 @@ def main():
     name_imgs = [p for p in os.listdir(data_dir) if p.endswith('.jpg')]
     # path_imgs 返回图片地址列表
     path_imgs = [os.path.join(data_dir, name) for name in name_imgs]
+    random.seed(random_seed)
+    random.shuffle(path_imgs)
 
     all_nums = len(path_imgs)
     train_breakpoints = int(all_nums*train_ratio)
