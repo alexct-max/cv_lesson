@@ -42,7 +42,29 @@ def main():
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, test_data.cls_num)
     # load pretrain model
+    ckpt = torch.load(path_state_dict)
+    model.load_state_dict(ckpt["model_state_dict"])
+    model.to(device)
+    model.eval()
 
+    # step3: inference
+    class_num = test_loader.dataset.cls_num
+    conf_mat = np.zeros((class_num, class_num))
+
+    for i, data in enumerate(test_loader):
+        inputs, labels, path_imgs = data
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        outputs = model(inputs)
+        # 统计混淆矩阵
+        _, predicted = torch.max(outputs.data, 1)
+        for j in range(len(labels)):
+            cate_i = labels[j].cpu().numpy()
+            pre_i = predicted[j].cpu().numpy()
+            conf_mat[cate_i, pre_i] += 1.
+
+    acc_avg = conf_mat.trace() / conf_mat.sum()
+    print("test acc: {:.2%}".format(acc_avg))
 
 if __name__ == '__main__':
     main()
