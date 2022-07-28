@@ -8,7 +8,10 @@
 @Desc    :   模型在test上进行指标计算
 '''
 
-
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+import sys
+sys.path.append(os.path.join(BASE_DIR, '..'))
 import torch
 import numpy as np
 import torch.nn as nn
@@ -21,8 +24,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
     # config
-    data_dir = r"path"  # 测试集地址
-    path_state_dict = r"path"  # 模型保存地址
+    data_dir = r"D:\code_learning\dataset\102flowers\test"  # 测试集地址
+    path_state_dict = r"D:\code_learning\cv_lesson\results\2022-07-28_00_38\checkpoint_best.pkl"  # 模型保存地址
 
     norm_mean = [0.485, 0.456, 0.406]
     norm_std = [0.229, 0.224, 0.225]
@@ -33,7 +36,7 @@ def main():
         normTransform
     ])
     test_bs = 64
-    workers = 4
+    workers = 0
     
     test_data = FlowerDataset(root_dir=data_dir, transform=transforms_test)
     test_loader = DataLoader(dataset=test_data, batch_size=test_bs, num_workers=workers)
@@ -52,7 +55,7 @@ def main():
     conf_mat = np.zeros((class_num, class_num))
 
     for i, data in enumerate(test_loader):
-        inputs, labels, path_imgs = data
+        inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
 
         outputs = model(inputs)
