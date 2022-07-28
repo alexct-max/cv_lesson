@@ -21,7 +21,7 @@ def my_mkdir(my_dir):
 
 def main():
     root_dir = r'D:\code_learning\dataset\102flowers'
-    path_mat = r'path' # 标签地址
+    path_mat = r'D:\code_learning\dataset\102flowers\imagelabels.mat' # 标签地址
     reorder_dir = os.path.join(root_dir, "reorder")
     jpg_dir = os.path.join(root_dir, "jpg")
 
