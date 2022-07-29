@@ -61,4 +61,28 @@ def show_confMat(confusion_mat, classes, set_name, out_dir, epoch=999, verbose=F
     plt.colorbar(fraction=0.03)
 
     # 设置文字
-    
+    xlocations = np.array(range(len(classes)))
+    plt.xticks(xlocations, list(classes), rotation=60)
+    plt.yticks(xlocations, list(classes))
+    plt.xlabel("Predict label")
+    plt.ylabel("True label")
+    plt.title(f"Confusion_Matrix_{set_name}_{epoch}")
+
+    # 打印数字
+    if perc:
+        cls_per_nums = confusion_mat.sum(axis=0)
+        conf_mat_per = confusion_mat / cls_per_nums
+        for i in range(confusion_mat_tmp.shape[0]):
+            for j in range(confusion_mat_tmp.shape[1]):
+                plt.text(x=j, y=i, s="{:.0%}".format(conf_mat_per[i, j]), va="center", ha="center", color="red", fontsize=10)
+    else:
+        for i in range(confusion_mat_tmp.shape[0]):
+            for j in range(confusion_mat_tmp.shape[1]):
+                plt.text(x=j, y=i, s=int(conf_mat_per[i, j]), va="center", ha="center", color="red", fontsize=10)
+    # 保存
+    plt.savefig(os.path.join(out_dir, f"Confusion_Matrix_{set_name}.png"))
+    plt.close()
+
+    if verbose:
+        for i in range(cls_num):
+            print('class:{:<10}, total num:{:<6}, correct num:{:<5}  Recall: {:.2%} Precision: {:.2%}'.format(classes[i], np.sum(confusion_mat[i, :]), confusion_mat[i, i], confusion_mat[i, i] / (1e-9 + np.sum(confusion_mat[i, :])), confusion_mat[i, i] / (1e-9 + np.sum(confusion_mat[:, i])))) # https://blog.csdn.net/W1995S/article/details/114988637
