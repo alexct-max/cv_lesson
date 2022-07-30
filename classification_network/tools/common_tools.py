@@ -8,7 +8,6 @@
 @Desc    :   通用函数库
 '''
 
-
 import os
 import logging
 from matplotlib import pyplot as plt
@@ -86,3 +85,27 @@ def show_confMat(confusion_mat, classes, set_name, out_dir, epoch=999, verbose=F
     if verbose:
         for i in range(cls_num):
             print('class:{:<10}, total num:{:<6}, correct num:{:<5}  Recall: {:.2%} Precision: {:.2%}'.format(classes[i], np.sum(confusion_mat[i, :]), confusion_mat[i, i], confusion_mat[i, i] / (1e-9 + np.sum(confusion_mat[i, :])), confusion_mat[i, i] / (1e-9 + np.sum(confusion_mat[:, i])))) # https://blog.csdn.net/W1995S/article/details/114988637
+
+
+def plot_line(train_x, train_y, valid_x, valid_y, mode, out_dir):
+    """
+    绘制训练和验证集的loss曲线/acc曲线
+    :param train_x: epoch
+    :param train_y: 标量值
+    :param valid_x:
+    :param valid_y:
+    :param mode:  'loss' or 'acc'
+    :param out_dir:
+    :return:
+    """
+    plt.plot(train_x, train_y, label='Train')
+    plt.plot(valid_x, valid_y, label='Valid')
+    plt.ylabel(str(mode))
+    plt.xlabel("Epoch")
+
+    location = 'upper right' if mode == 'loss' else 'upper left'
+    plt.legend(loc=location)
+
+    plt.title('_'.join([mode]))
+    plt.savefig(os.path.join(out_dir, mode + '.png'))
+    plt.close()
