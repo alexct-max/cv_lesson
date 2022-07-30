@@ -109,3 +109,12 @@ def plot_line(train_x, train_y, valid_x, valid_y, mode, out_dir):
     plt.title('_'.join([mode]))
     plt.savefig(os.path.join(out_dir, mode + '.png'))
     plt.close()
+
+class Logger(object):
+    def __init__(self, path_log):
+        log_name = os.path.basename(path_log) # os.path.basename() 将指定的路径拆分为后返回尾部， 参考https://vimsky.com/examples/usage/python-os-path-basename-method.html
+        self.log_name = log_name if log_name else 'root'
+        self.out_path = path_log
+
+        log_dir = os.path.dirname(self.out_path) # os.path.dirname() 去掉文件名，返回目录，参考https://blog.csdn.net/weixin_38470851/article/details/80367143
+        
