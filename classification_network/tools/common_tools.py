@@ -117,4 +117,29 @@ class Logger(object):
         self.out_path = path_log
 
         log_dir = os.path.dirname(self.out_path) # os.path.dirname() 去掉文件名，返回目录，参考https://blog.csdn.net/weixin_38470851/article/details/80367143
-        
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+    
+    def init_logger(self):
+        logger = logging.getLogger(self.log_name)
+        logger.setLevel(level=logging.INFO)
+
+        # 配置文件Handler
+        file_handler = logging.FileHandler(self.out_path, 'w')
+        file_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # 配置屏幕Handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+
+        # 添加handler
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+
+def check_data_dir(path_tmp):
+    assert os.path.exists(path_tmp), \
+        "\n\n路径不存在，当前变量中指定的路径是：\n{}\n请检查相对路径的设置，或者文件是否存在".format(os.path.abspath(path_tmp))
